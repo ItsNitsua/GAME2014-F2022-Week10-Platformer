@@ -16,11 +16,15 @@ public class PlayerBehaviour : MonoBehaviour
     public bool isGrounded;
 
 
+    [Header("Animations")]
+    public Animator animator;
+    public PlayerAnimationState playerAnimationState;
     private Rigidbody2D rb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -31,6 +35,7 @@ public class PlayerBehaviour : MonoBehaviour
 
         Move();
         Jump();
+        AirCheck();
     }
 
     private void Move()
@@ -46,8 +51,13 @@ public class PlayerBehaviour : MonoBehaviour
 
             var clampedXVelocity = Mathf.Clamp(rb.velocity.x, -horizontalSpeed, horizontalSpeed);
             rb.velocity = new Vector2(clampedXVelocity, rb.velocity.y);
-        }
 
+            ChangeAnimation(PlayerAnimationState.RUN);
+        }
+        if((isGrounded) && (x == 0.0f))
+        {
+            ChangeAnimation(PlayerAnimationState.IDLE);
+        }
     }
 
     private void Jump()
@@ -59,12 +69,26 @@ public class PlayerBehaviour : MonoBehaviour
             rb.AddForce(Vector2.up * verticalForce, ForceMode2D.Impulse);
         }
     }
+
+    private void AirCheck()
+    {
+        if (!isGrounded)
+        {
+            ChangeAnimation(PlayerAnimationState.JUMP);
+        }
+    }
     public void Flip(float x)
     {
         if (x != 0.0f)
         {
             transform.localScale = new Vector3((x > 0.0f) ? 1.0f : -1.0f, 1.0f, 1.0f);
         }
+    }
+
+    private void ChangeAnimation(PlayerAnimationState animationState)
+    {
+        playerAnimationState = animationState;
+        animator.SetInteger("Animation State", (int)playerAnimationState);
     }
     public void OnDrawGizmos()
     {
